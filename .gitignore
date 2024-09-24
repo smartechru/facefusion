@@ -1,4 +1,6 @@
 .assets
+.caches
+.jobs
 .idea
 .vscode
 assets_sd3/
