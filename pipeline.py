@@ -2,6 +2,7 @@ import os
 import time
 import string
 import random
+import concurrent.futures
 import facefusion.globals
 from facefusion import core
 from facefusion.vision import detect_image_resolution, pack_resolution
@@ -15,7 +16,7 @@ def generate_name(n: int = 7) -> str:
     :return: random name
     """
     # generating random strings
-    res = ''.join(random.choices(string.ascii_uppercase + string.digits, k=n))
+    res = "".join(random.choices(string.ascii_uppercase + string.digits, k=n))
     return str(res)
 
 
@@ -28,19 +29,19 @@ def run(src: str, career: str, sex: str, max_num: int = 10) -> None:
     :return: none
     """
     # verify input parameter
-    career_list = [ 'artist', 'scientist', 'business', 'educator', 'sports' ]
+    career_list = ["artist", "scientist", "business", "educator", "sports"]
     if career in career_list:
         # set photo template according to the given gender
-        num = random.randint(0, max_num - 1)        # set random style
-        dst = f'./assets/{career}/{num}{sex}.jpg'   # set target image path
+        num = random.randint(0, max_num - 1)  # set random style
+        dst = f"./assets/{career}/{num}{sex}.jpg"  # set target image path
 
         # set output image path
-        os.makedirs('./output', exist_ok=True)
-        output = f'./output/{generate_name()}.jpg'
+        os.makedirs("./output", exist_ok=True)
+        output = f"./output/{generate_name()}.jpg"
         process_image(src, dst, output)
-        print(f'Output image: {output}')
+        print(f"Output image: {output}")
     else:
-        print('Career name incorrect!')
+        print("Career name incorrect!")
 
 
 def process_image(src: str, dst: str, out: str) -> None:
@@ -52,7 +53,9 @@ def process_image(src: str, dst: str, out: str) -> None:
     """
     # set essential parameters
     output_image_resolution = detect_image_resolution(dst)
-    facefusion.globals.output_image_resolution = pack_resolution(output_image_resolution)
+    facefusion.globals.output_image_resolution = pack_resolution(
+        output_image_resolution
+    )
     facefusion.globals.target_path = dst
     facefusion.globals.output_path = out
     facefusion.globals.source_paths = [src]
@@ -66,33 +69,23 @@ def process_image(src: str, dst: str, out: str) -> None:
 def init_system() -> None:
     # initialize system
     core.cli()
-    print("[FACEFUSION.MAIN] System Initialized!")
+    print("[PIPELINE] System Initialized!")
+    pool = concurrent.futures.ThreadPoolExecutor(max_workers=10)
 
     # dummy test
-    src_1 = "test/pair_1_man.jpg_pair_1_woman.jpg_father_0.7_female.png_20.png"
-    src_2 = "test/man.jpg_woman.jpg_father_0.5_male_with_optimization.png"
-    src_3 = "test/man.jpg_woman.jpg_father_0.5_male_without_optimization.png"
-    src_4 = "D:/AI/BabyGen/BabyGAN/data/images/baby_pair_4_man.jpg_pair_4_woman.jpg_father_0.9_female.png_50.png"
-    src_5 = "D:/AI/BabyGen/BabyGAN/data/images/baby_pair_4_man.jpg_pair_4_woman.jpg_mother_0.9_female.png_50.png"
-    src_6 = "D:/AI/BabyGen/BabyGAN/data/images/pair_4_man.jpg_pair_4_woman.jpg_father_0.9_female.png"
-    src_7 = "D:/AI/BabyGen/BabyGAN/data/images/pair_4_man.jpg_pair_4_woman.jpg_father_0.9_male.png"
-    src_8 = "D:/AI/BabyGen/BabyGAN/data/images/pair_4_man.jpg_pair_4_woman.jpg_mother_0.9_female.png"
-    src_9 = "D:/AI/BabyGen/BabyGAN/data/images/pair_4_man.jpg_pair_4_woman.jpg_mother_0.9_male.png"
-    src_10 = "D:/AI/BabyGen/BabyGAN/data/images/baby_pair_1_man.jpg_pair_1_woman.jpg_father_0.9_male.png_50.png"
-    
-    career = 'artist'
-    sex = 'F'
-    src = src_10
-    
-    # for i in range(0, 10):
-        # run(src, career, sex, 100)
-        # run(src_3, career, sex, 44)
-    
-    # dst = f'./output/normal/{i}F.jpg'
-    dst = f'./assets/artist/5M.jpg'
-    output = f'./output/{generate_name()}.jpg'
-    output = f'./output/2.jpg'
-    process_image(src, dst, output)
+    dir_path = "D:/AI\Dataset/Celebrity Recognition DB_65/Bai Lu_004206_F"
+    files = os.listdir(dir_path)
+    for file in files:
+        print(f"[PIPELINE] Submit for {file}")
+        src_path = os.path.join(dir_path, file)
+        num = random.randint(0, 281)
+        dst_path = f"D:/AI/Engine/engine/faceswap/assets/arts/{num}F.jpg"
+        output = f"./output/{generate_name()}.jpg"
+        pool.submit(process_image, src_path, dst_path, output)
+
+    # shutdown task
+    pool.shutdown(wait=True)
+    print("{PIPELINE] Done!")
 
 
 if __name__ == "__main__":

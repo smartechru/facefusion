@@ -1,4 +1,0 @@
-diffusers[torch]
-transformers[sentencepiece]
-accelerate
-pip install -i https://pypi.org/simple/ bitsandbytes
